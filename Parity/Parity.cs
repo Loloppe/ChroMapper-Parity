@@ -23,7 +23,6 @@ namespace Parity
         private const int ColorBlue = 1;
         private const string ParityFileName = "parity.txt";
         private const int EditorSceneBuildIndex = 3;
-        private const int InitialWaitMilliseconds = 30000; // total max wait
         private const int PollIntervalMilliseconds = 1000; // poll interval
         private const float HsvAdjust = 0.4f;
         private const float DefaultEventCooldown = 0.25f;
@@ -77,32 +76,30 @@ namespace Parity
                 initParity = true;
 
                 // Poll for required objects with a shorter total wait instead of a fixed long delay
-                int waited = 0;
                 _noteGridContainer = null;
                 _beatSaberSongContainer = null;
                 _audioTimeSyncController = null;
 
-                while ((_noteGridContainer == null || _beatSaberSongContainer == null || _audioTimeSyncController == null) && waited < InitialWaitMilliseconds)
-                {
-                    await Task.Delay(PollIntervalMilliseconds);
-                    waited += PollIntervalMilliseconds;
-                    _noteGridContainer = _noteGridContainer ?? Object.FindObjectOfType<NoteGridContainer>();
-                    _beatSaberSongContainer = _beatSaberSongContainer ?? Object.FindObjectOfType<BeatSaberSongContainer>();
-                    _audioTimeSyncController = _audioTimeSyncController ?? Object.FindObjectOfType<AudioTimeSyncController>();
-                }
+                await FindObject();
 
-                if (_audioTimeSyncController != null)
-                {
-                    _audioTimeSyncController.TimeChanged += OnTimeChanged;
-                }
-
-                if (_beatSaberSongContainer != null)
-                    _folderPath = _beatSaberSongContainer.Info.Directory;
+                _audioTimeSyncController.TimeChanged += OnTimeChanged;
+                _folderPath = _beatSaberSongContainer.Info.Directory;
 
                 var notes = _noteGridContainer.MapObjects.OrderBy(o => o.JsonTime).ToList();
                 Helper.HandlePattern(notes);
 
                 LoadParityFile();
+            }
+        }
+
+        private async Task FindObject()
+        {
+            while (_noteGridContainer == null || _beatSaberSongContainer == null || _audioTimeSyncController == null)
+            {
+                await Task.Delay(PollIntervalMilliseconds);
+                _noteGridContainer = _noteGridContainer ?? Object.FindObjectOfType<NoteGridContainer>();
+                _beatSaberSongContainer = _beatSaberSongContainer ?? Object.FindObjectOfType<BeatSaberSongContainer>();
+                _audioTimeSyncController = _audioTimeSyncController ?? Object.FindObjectOfType<AudioTimeSyncController>();
             }
         }
 
