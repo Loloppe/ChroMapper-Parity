@@ -23,8 +23,8 @@ namespace Parity
         private const int ColorBlue = 1;
         private const string ParityFileName = "parity.txt";
         private const int EditorSceneBuildIndex = 3;
-        private const int InitialWaitMilliseconds = 5000; // total max wait
-        private const int PollIntervalMilliseconds = 100; // poll interval
+        private const int InitialWaitMilliseconds = 30000; // total max wait
+        private const int PollIntervalMilliseconds = 1000; // poll interval
         private const float HsvAdjust = 0.4f;
         private const float DefaultEventCooldown = 0.25f;
         private const float HoldDurationSeconds = 1f;
