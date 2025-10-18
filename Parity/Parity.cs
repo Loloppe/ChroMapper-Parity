@@ -191,6 +191,18 @@ namespace Parity
             {
                 if (_noteGridContainer == null) return;
 
+                // Need to clear color if note changed color
+                var loaded = _noteGridContainer.LoadedContainers.Keys.ToList();
+                foreach (BaseNote n in loaded)
+                {
+                    var data = _parityData.FirstOrDefault(d => d.JsonTime == n.JsonTime && d.Color != n.Color && d.PosX == n.PosX && d.PosY == n.PosY);
+                    // Update color if note changed color
+                    if (data != null)
+                    {
+                        _noteColors.Remove(n);
+                    }
+                }
+
                 // Clear out colors
                 ResetLoadedNotes();
 
@@ -199,7 +211,7 @@ namespace Parity
                     var redNotes = _noteGridContainer.MapObjects.Where(o => o.Color == ColorRed).OrderBy(o => o.JsonTime).ToList();
                     var blueNotes = _noteGridContainer.MapObjects.Where(o => o.Color == ColorBlue).OrderBy(o => o.JsonTime).ToList();
                     var combined = redNotes.Concat(blueNotes).OrderBy(o => o.JsonTime).ToList();
-
+                    
                     // Remove data for notes that no longer exist
                     _parityData.RemoveAll(d => !combined.Any(n => n.JsonTime == d.JsonTime && n.Color == d.Color && n.PosX == d.PosX && n.PosY == d.PosY));
 
