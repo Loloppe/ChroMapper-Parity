@@ -75,7 +75,6 @@ namespace Parity
                 _noteColors.Clear();
                 initParity = true;
 
-                // Poll for required objects with a shorter total wait instead of a fixed long delay
                 _noteGridContainer = null;
                 _beatSaberSongContainer = null;
                 _audioTimeSyncController = null;
@@ -242,8 +241,9 @@ namespace Parity
                 if (prev != null)
                 {
                     // I'm lazy, potential multi-notes swing
-                    if (n.jsonTime - prev.jsonTime <= 0.125 && (n.CutDirection == 8 ||
+                    if ((n.jsonTime - prev.jsonTime <= 0.125 && (n.CutDirection == 8 || prev.CutDirection == 8 ||
                         Helper.IsSameDir(Helper.DirectionToDegree[prev.CutDirection] + prev.AngleOffset, Helper.DirectionToDegree[n.CutDirection] + n.AngleOffset)))
+                        || n.jsonTime == prev.jsonTime)
                     {
                         // Same parity as before
                         _parityData.Add(new ParityData(n.JsonTime, n.Color, n.PosX, n.PosY, forehand));
