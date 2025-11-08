@@ -21,7 +21,6 @@ namespace Parity
         // Constants
         private const int ColorRed = 0;
         private const int ColorBlue = 1;
-        private const string ParityFileName = "parity.txt";
         private const int EditorSceneBuildIndex = 3;
         private const int PollIntervalMilliseconds = 1000; // poll interval
         private const float HsvAdjust = 0.4f;
@@ -53,6 +52,7 @@ namespace Parity
             BeatmapActionContainer.ActionCreatedEvent += OnBeatmapActionCreated;
             BeatmapActionContainer.ActionUndoEvent += OnBeatmapActionUndo;
             BeatmapActionContainer.ActionRedoEvent += OnBeatmapActionRedo;
+            LoadedDifficultySelectController.LoadedDifficultyChangedEvent += LoadedDifficultyChanged;
             SavingEvent += OnSavingEvent;
 
             _flagParityAction = new InputAction("Flag Parity", type: InputActionType.Button, binding: "<Keyboard>/f1");
@@ -91,6 +91,27 @@ namespace Parity
             }
         }
 
+        private async void LoadedDifficultyChanged()
+        {
+            _parityData.Clear();
+            _noteColors.Clear();
+            initParity = true;
+
+            _noteGridContainer = null;
+            _beatSaberSongContainer = null;
+            _audioTimeSyncController = null;
+
+            await FindObject();
+
+            _audioTimeSyncController.TimeChanged += OnTimeChanged;
+            _folderPath = _beatSaberSongContainer.Info.Directory;
+
+            var notes = _noteGridContainer.MapObjects.OrderBy(o => o.JsonTime).ToList();
+            Helper.HandlePattern(notes);
+
+            LoadParityFile();
+        }
+
         private async Task FindObject()
         {
             while (_noteGridContainer == null || _beatSaberSongContainer == null || _audioTimeSyncController == null)
@@ -115,7 +136,12 @@ namespace Parity
 
             try
             {
-                var filePath = Path.Combine(_folderPath, ParityFileName);
+                string characteristic = _beatSaberSongContainer.MapDifficultyInfo.Characteristic;
+                string difficulty = _beatSaberSongContainer.MapDifficultyInfo.Difficulty;
+
+                string fileName = "Parity" + characteristic + difficulty + ".json";
+
+                var filePath = Path.Combine(_folderPath, fileName);
                 string jsonString = JsonConvert.SerializeObject(_parityData.Where(x => x.ManuallyTagged));
                 File.WriteAllText(filePath, jsonString);
             }
@@ -129,7 +155,12 @@ namespace Parity
         {
             if (string.IsNullOrEmpty(_folderPath)) return;
 
-            var filePath = Path.Combine(_folderPath, ParityFileName);
+            string characteristic = _beatSaberSongContainer.MapDifficultyInfo.Characteristic;
+            string difficulty = _beatSaberSongContainer.MapDifficultyInfo.Difficulty;
+
+            string fileName = "Parity" + characteristic + difficulty + ".json";
+
+            var filePath = Path.Combine(_folderPath, fileName);
 
             if (File.Exists(filePath))
             {
